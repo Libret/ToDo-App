@@ -1,0 +1,10 @@
+@model ToDoItem
+
+<form asp-action="Insert" id="from-action" method="post" role="form">
+    <div asp-validation-summary="All"></div>
+        <label asp-for="Name"></label>
+        <input asp-for="Id" type="hidden">
+        <input asp-for="Name">
+        <span asp-validation-for="Name"></span>
+        <input type="submit" id="from-button" value="Add ToDo">
+</form>
