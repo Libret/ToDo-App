@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
+using Microsoft.VisualBasic;
+using Todo.Models.ViewModels;
 using ToDo_App.Models;
 
 namespace ToDo_App.Controllers;
@@ -16,16 +18,16 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        return View();
+        var ToDoAllViewModels = GetAllToDoItems();
+        return View(ToDoAllViewModels);
     }
-    public RedirectResult Insert(ToDoItem todoItem)
+    public RedirectResult InsertData(ToDoItem toDoItem)
     {
-        using (SqliteConnection con = new SqliteConnection("Data Source=db.sqlite"))
+        var conOpen = SqliteCon.SqliteOpenConnnection();
         {
-            using (var tableCmd = con.CreateCommand())
+            using (var tableCmd = conOpen.CreateCommand())
             {
-                con.Open();
-                tableCmd.CommandText = $"INSERT INTO todoItem (name) VALUES ('{todoItem.Name}')";
+                tableCmd.CommandText = $"INSERT INTO todoItem (name) VALUES ('{toDoItem.Name}')";
                 try
                 {
                     tableCmd.ExecuteNonQuery();
@@ -38,4 +40,37 @@ public class HomeController : Controller
         }
         return Redirect("https://localhost:7149/");
     }
+    public static ToDoViewModel GetAllToDoItems()
+    {
+        List<ToDoItem> toDoList = new();
+
+        var con = SqliteCon.SqliteOpenConnnection();
+
+        var tableCmd = con.CreateCommand();
+        {
+            tableCmd.CommandText = "SELECT * FROM todoItem";
+
+            using (var reader = tableCmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        toDoList.Add(
+                        new ToDoItem
+                        {
+                            Id = reader.GetInt32(0),
+                            Name = reader.GetString(1)
+                        });
+                    }
+                }
+                
+                return new ToDoViewModel 
+                {
+                    ToDoList = toDoList
+                };
+            };
+        }
+    }
 }
+
